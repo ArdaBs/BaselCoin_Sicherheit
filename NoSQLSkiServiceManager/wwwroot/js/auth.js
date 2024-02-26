@@ -5,7 +5,7 @@
     if (token) {
         authNavItem.innerHTML = '<a class="nav-link btn btn-danger text-white" href="#" onclick="logout()">Logout</a>';
     } else {
-        authNavItem.innerHTML = '<a class="nav-link btn btn-light" href="/login.html">Login</a>';
+        authNavItem.innerHTML = '<a class="nav-link btn btn-light text-dark" href="/login.html">Login</a>';
     }
 }
 
