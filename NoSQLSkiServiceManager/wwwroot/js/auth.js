@@ -2,13 +2,19 @@
 let isTimeoutLogout = false; 
 
 function startLogoutTimer() {
-    const logoutTime = 0.5 * 60 * 1000; 
+    const token = localStorage.getItem('token');
+    if (!token) {
+        return;
+    }
+
+    const logoutTime = 0.5 * 60 * 1000; // 30 Sekunden
     if (logoutTimer) clearTimeout(logoutTimer);
     logoutTimer = setTimeout(() => {
-        isTimeoutLogout = true; 
+        isTimeoutLogout = true;
         logout();
     }, logoutTime);
 }
+
 
 function logout() {
     if (isTimeoutLogout) {

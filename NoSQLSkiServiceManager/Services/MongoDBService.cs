@@ -98,10 +98,10 @@ public class MongoDBService
         {
             var employees = new List<AccountHolder>
         {
-            new AccountHolder { Username = "Arda", Password = "12345678", IsLocked = false, FailedLoginAttempts = 0, Role = "Admin" },
-            new AccountHolder { Username = "Lukas", Password = "12345678", IsLocked = false, FailedLoginAttempts = 0, Role = "User" },
-            new AccountHolder { Username = "Goku", Password = "12345678", IsLocked = false, FailedLoginAttempts = 0, Role = "User" },
-            new AccountHolder { Username = "Gojo", Password = "12345678", IsLocked = false, FailedLoginAttempts = 0, Role = "User" }
+            new AccountHolder { Username = "Gapsch", Password = "12345678", IsLocked = false, FailedLoginAttempts = 0, Role = "Admin", Balance = 100 },
+            new AccountHolder { Username = "Lukas", Password = "12345678", IsLocked = false, FailedLoginAttempts = 0, Role = "User", Balance = 100 },
+            new AccountHolder { Username = "Goku", Password = "12345678", IsLocked = false, FailedLoginAttempts = 0, Role = "User", Balance = 100 },
+            new AccountHolder { Username = "Gojo", Password = "12345678", IsLocked = false, FailedLoginAttempts = 0, Role = "User" , Balance = 100}
         };
             await employeeCollection.InsertManyAsync(employees);
             await CreateEmployeeIndexesAsync();
