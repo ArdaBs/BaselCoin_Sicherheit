@@ -13,7 +13,7 @@ namespace NoSQLSkiServiceManager.Services
     /// <summary>
     /// Provides service layer functionality for employee operations.
     /// </summary>
-    public class EmployeeService : GenericService<Employee, EmployeeCreateDto, EmployeeUpdateDto, EmployeeResponseDto>
+    public class EmployeeService : GenericService<AccountHolder, AccountHolderCreateDto, AccountBalanceUpdateDto, AccountHolderResponseDto>
     {
         private const int MaxLoginAttempts = 3;
 
@@ -23,7 +23,7 @@ namespace NoSQLSkiServiceManager.Services
         /// <param name="database">The Mongo database connection.</param>
         /// <param name="mapper">The class used for object mapping.</param>
         public EmployeeService(IMongoDatabase database, IMapper mapper)
-            : base(database, mapper, "employees")
+            : base(database, mapper, "accountHolders")
         {
         }
 
@@ -32,7 +32,7 @@ namespace NoSQLSkiServiceManager.Services
         /// </summary>
         /// <param name="loginDto">The data transfer object containing login credentials.</param>
         /// <returns>A message indicating the result of the authentication attempt.</returns>
-        public async Task<AuthenticationResult> AuthenticateEmployeeAsync(EmployeeLoginDto loginDto)
+        public async Task<AuthenticationResult> AuthenticateEmployeeAsync(AccountHolderLoginDto loginDto)
         {
             var employee = await _collection.Find(emp => emp.Username == loginDto.Username).FirstOrDefaultAsync();
             if (employee == null)
@@ -53,8 +53,8 @@ namespace NoSQLSkiServiceManager.Services
                 {
                     employee.IsLocked = true;
                     await _collection.UpdateOneAsync(
-                        Builders<Employee>.Filter.Eq(emp => emp.Id, employee.Id),
-                        Builders<Employee>.Update
+                        Builders<AccountHolder>.Filter.Eq(emp => emp.Id, employee.Id),
+                        Builders<AccountHolder>.Update
                             .Set(emp => emp.IsLocked, true)
                             .Set(emp => emp.FailedLoginAttempts, employee.FailedLoginAttempts)
                     );
@@ -63,16 +63,16 @@ namespace NoSQLSkiServiceManager.Services
                 else
                 {
                     await _collection.UpdateOneAsync(
-                        Builders<Employee>.Filter.Eq(emp => emp.Id, employee.Id),
-                        Builders<Employee>.Update.Set(emp => emp.FailedLoginAttempts, employee.FailedLoginAttempts)
+                        Builders<AccountHolder>.Filter.Eq(emp => emp.Id, employee.Id),
+                        Builders<AccountHolder>.Update.Set(emp => emp.FailedLoginAttempts, employee.FailedLoginAttempts)
                     );
                     return new AuthenticationResult { IsAuthenticated = false, Message = $"Falsches Passwort. Verbleibende Versuche: {remainingAttempts}", RemainingAttempts = remainingAttempts };
                 }
             }
 
             await _collection.UpdateOneAsync(
-                Builders<Employee>.Filter.Eq(emp => emp.Id, employee.Id),
-                Builders<Employee>.Update.Set(emp => emp.FailedLoginAttempts, 0)
+                Builders<AccountHolder>.Filter.Eq(emp => emp.Id, employee.Id),
+                Builders<AccountHolder>.Update.Set(emp => emp.FailedLoginAttempts, 0)
             );
 
             return new AuthenticationResult
@@ -90,8 +90,8 @@ namespace NoSQLSkiServiceManager.Services
         /// <returns>A boolean indicating whether the account was successfully unlocked.</returns>
         public async Task<bool> UnlockEmployeeAccount(string username)
         {
-            var filter = Builders<Employee>.Filter.Eq(emp => emp.Username, username) & Builders<Employee>.Filter.Eq(emp => emp.IsLocked, true);
-            var update = Builders<Employee>.Update.Set(emp => emp.IsLocked, false).Set(emp => emp.FailedLoginAttempts, 0);
+            var filter = Builders<AccountHolder>.Filter.Eq(emp => emp.Username, username) & Builders<AccountHolder>.Filter.Eq(emp => emp.IsLocked, true);
+            var update = Builders<AccountHolder>.Update.Set(emp => emp.IsLocked, false).Set(emp => emp.FailedLoginAttempts, 0);
             var result = await _collection.UpdateOneAsync(filter, update);
             return result.IsAcknowledged && result.ModifiedCount > 0;
         }

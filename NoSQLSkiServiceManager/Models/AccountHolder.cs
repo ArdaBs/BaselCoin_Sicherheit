@@ -5,7 +5,7 @@ using NoSQLSkiServiceManager.Interfaces;
 
 namespace NoSQLSkiServiceManager.Models
 {
-    public class Employee : IEntity
+    public class AccountHolder : IEntity
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
@@ -20,6 +20,10 @@ namespace NoSQLSkiServiceManager.Models
         [Required]
         [StringLength(100, MinimumLength = 8)]
         public string Password { get; set; }
+
+        [BsonElement("balance")]
+        [Range(0, double.MaxValue)]
+        public double Balance { get; set; }
 
         [BsonElement("isLocked")]
         public bool IsLocked { get; set; }

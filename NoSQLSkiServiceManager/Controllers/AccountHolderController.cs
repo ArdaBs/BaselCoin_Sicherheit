@@ -5,13 +5,14 @@ using NoSQLSkiServiceManager.Models;
 using NoSQLSkiServiceManager.Services;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Serilog;
 
 namespace NoSQLSkiServiceManager.Controllers
 {
     /// <summary>
     /// Manages employee-related operations such as authentication and account unlocking.
     /// </summary>
-    public class EmployeeController : GenericController<Employee, EmployeeCreateDto, EmployeeUpdateDto, EmployeeResponseDto>
+    public class AccountHolderController : GenericController<AccountHolder, AccountHolderCreateDto, AccountBalanceUpdateDto, AccountHolderResponseDto>
     {
         private readonly TokenService _tokenService;
         private readonly IMapper _mapper;
@@ -24,7 +25,7 @@ namespace NoSQLSkiServiceManager.Controllers
         /// <param name="employeeService">Provides employee-specific services.</param>
         /// <param name="tokenService">Provides JWT token services.</param>
         /// <param name="mapper">Provides object mapping services.</param>
-        public EmployeeController(GenericService<Employee, EmployeeCreateDto, EmployeeUpdateDto, EmployeeResponseDto> genericService,
+        public AccountHolderController(GenericService<AccountHolder, AccountHolderCreateDto, AccountBalanceUpdateDto, AccountHolderResponseDto> genericService,
                                   EmployeeService employeeService,
                                   TokenService tokenService,
                                   IMapper mapper) : base(genericService)
@@ -36,7 +37,7 @@ namespace NoSQLSkiServiceManager.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public override async Task<IActionResult> Create(EmployeeCreateDto createDto)
+        public override async Task<IActionResult> Create(AccountHolderCreateDto createDto)
         {
             return await base.Create(createDto);
         }
@@ -47,17 +48,22 @@ namespace NoSQLSkiServiceManager.Controllers
         /// <param name="loginDto">The login details of the employee.</param>
         /// <returns>A JWT token if authentication is successful; otherwise, an unauthorized result.</returns>
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] EmployeeLoginDto loginDto)
+        public async Task<IActionResult> Login([FromBody] AccountHolderLoginDto loginDto)
         {
             var authResult = await _employeeService.AuthenticateEmployeeAsync(loginDto);
 
             if (authResult.IsAuthenticated)
             {
                 var token = _tokenService.CreateToken(authResult.Employee.Username, authResult.Employee.Role, authResult.Employee.Id.ToString());
+
+                Log.Information("Event: Login Success, User: {Username}, Action: User logged in", loginDto.Username);
+
                 return Ok(new { Token = token });
             }
             else
             {
+                Log.Information("Event: Login Failed, User: {Username}, Action: Failed login attempt, Reason: {Reason}", loginDto.Username, authResult.Message);
+
                 return Unauthorized(authResult.Message);
             }
         }

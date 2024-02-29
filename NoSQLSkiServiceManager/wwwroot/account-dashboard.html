@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkiService Webseite</title>
+    <title>Kontoübersicht</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/auth.js"></script>
 </head>
 <body>
-
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <a class="navbar-brand" href="#">SkiService</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -28,10 +27,16 @@
             </ul>
         </div>
     </nav>
-
-    <div class="container mt-4">
-        <h1>Willkommen bei Basel Coin</h1>
-        <p>Dies ist eine minimalistische Webseite für den Basel Coin, erstellt mit Bootstrap.</p>
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-header">
+                Kontoübersicht
+            </div>
+            <div class="card-body">
+                <h5 class="card-title" id="username">Benutzername wird geladen...</h5>
+                <p class="card-text" id="balance">Kontostand wird geladen...</p>
+            </div>
+        </div>
     </div>
 
     <!-- Session Timeout Modal -->
@@ -55,5 +60,31 @@
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const token = localStorage.getItem('token');
+            if (token) {
+                fetch('https://localhost:7095/api/AccountHolder/me', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('username').textContent = `Benutzername: ${data.username}`;
+                        document.getElementById('balance').textContent = `Kontostand: ${data.balance}€`;
+                    })
+                    .catch(error => {
+                        console.error('Fehler beim Abrufen der Kontodaten:', error);
+                        document.getElementById('username').textContent = 'Fehler beim Laden';
+                        document.getElementById('balance').textContent = 'Fehler beim Laden';
+                    });
+            } else {
+                console.log('Kein Token gefunden. Bitte einloggen.');
+            }
+        });
+    </script>
 </body>
 </html>

@@ -6,7 +6,6 @@ using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
 using NoSQLSkiServiceManager.DTOs.Request;
 using NoSQLSkiServiceManager.Profiles;
-using NoSQLSkiServiceManager.DTOs.Requests;
 using NoSQLSkiServiceManager.DTOs.Response;
 using NoSQLSkiServiceManager.Middlewares;
 using NoSQLSkiServiceManager.Models;
@@ -30,14 +29,7 @@ builder.Services.AddSingleton(serviceProvider =>
 {
     var database = serviceProvider.GetRequiredService<IMongoDatabase>();
     var mapper = serviceProvider.GetRequiredService<IMapper>();
-    return new GenericService<Employee, EmployeeCreateDto, EmployeeUpdateDto, EmployeeResponseDto>(database, mapper, "employees");
-});
-
-builder.Services.AddSingleton(serviceProvider =>
-{
-    var database = serviceProvider.GetRequiredService<IMongoDatabase>();
-    var mapper = serviceProvider.GetRequiredService<IMapper>();
-    return new GenericService<ServiceOrder, CreateServiceOrderRequestDto, UpdateServiceOrderRequestDto, OrderResponseDto>(database, mapper, "serviceOrders");
+    return new GenericService<AccountHolder, AccountHolderCreateDto, AccountBalanceUpdateDto, AccountHolderResponseDto>(database, mapper, "accountHolders");
 });
 
 builder.Services.AddControllers()
@@ -59,7 +51,7 @@ builder.Host.UseSerilog((ctx, lc) => lc
     .ReadFrom.Configuration(ctx.Configuration));
 
 // AutoMapper-Configuration
-builder.Services.AddAutoMapper(typeof(MappingCode));
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddSingleton<TokenService>();
 
 string toolsDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "MongoTools");
@@ -73,7 +65,6 @@ builder.Services.AddHostedService<MongoBackupManager>(serviceProvider =>
 
 
 builder.Services.AddSingleton<EmployeeService>();
-builder.Services.AddSingleton<ServiceOrderService>();
 
 
 builder.Services.AddSingleton<MongoDBService>(serviceProvider =>
@@ -97,7 +88,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "SkiService MongoDB API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "POC MongoDB API", Version = "v1" });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -142,6 +133,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseMiddleware<TokenValidationMiddleware>();
 app.UseStaticFiles();
 
 

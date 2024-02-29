@@ -30,33 +30,10 @@ public class MongoDBService
     {
         var collections = await _database.ListCollectionNames().ToListAsync();
 
-        await CreateCollectionIfNotExistsAsync("serviceTypes", ServiceTypeSchema);
-        await InsertServiceTypesAsync();
-
-        await CreateCollectionIfNotExistsAsync("servicePriorities", ServicePrioritySchema);
-        await InsertServicePrioritiesAsync();
-
-        await CreateCollectionIfNotExistsAsync("employees", EmployeeSchema);
+        await CreateCollectionIfNotExistsAsync("accountHolders", EmployeeSchema);
         await InitializeEmployeesAsync();
 
-        await CreateCollectionIfNotExistsAsync("serviceOrders", ServiceOrderSchema);
-        await InsertMultipleServiceOrdersAsync();
-
         await CreateUsersAsync();
-    }
-
-    /// <summary>
-    /// Creates indexes for the serviceOrders collection.
-    /// </summary>
-    public async Task CreateServiceOrderIndexesAsync()
-    {
-        var serviceOrderCollection = _database.GetCollection<ServiceOrder>("serviceOrders");
-
-        var indexKeysDefinition = Builders<ServiceOrder>.IndexKeys
-            .Ascending(order => order.ServiceType.Id)
-            .Ascending(order => order.Priority.Id);
-
-        await serviceOrderCollection.Indexes.CreateOneAsync(new CreateIndexModel<ServiceOrder>(indexKeysDefinition));
     }
 
     /// <summary>
@@ -64,7 +41,7 @@ public class MongoDBService
     /// </summary>
     public async Task CreateEmployeeIndexesAsync()
     {
-        var employeeCollection = _database.GetCollection<Employee>("employees");
+        var employeeCollection = _database.GetCollection<AccountHolder>("accountHolders");
         var indexList = await employeeCollection.Indexes.ListAsync();
         var indexes = await indexList.ToListAsync();
         var usernameIndexExists = indexes.Any(index =>
@@ -72,8 +49,8 @@ public class MongoDBService
 
         if (!usernameIndexExists)
         {
-            var usernameIndexKeysDefinition = Builders<Employee>.IndexKeys.Ascending(employee => employee.Username);
-            var usernameIndexModel = new CreateIndexModel<Employee>(usernameIndexKeysDefinition, new CreateIndexOptions { Unique = true });
+            var usernameIndexKeysDefinition = Builders<AccountHolder>.IndexKeys.Ascending(employee => employee.Username);
+            var usernameIndexModel = new CreateIndexModel<AccountHolder>(usernameIndexKeysDefinition, new CreateIndexOptions { Unique = true });
 
             await employeeCollection.Indexes.CreateOneAsync(usernameIndexModel);
         }
@@ -115,16 +92,16 @@ public class MongoDBService
     /// </summary>
     public async Task InitializeEmployeesAsync()
     {
-        var employeeCollection = _database.GetCollection<Employee>("employees");
+        var employeeCollection = _database.GetCollection<AccountHolder>("accountHolders");
         var exists = await employeeCollection.Find(_ => true).AnyAsync();
         if (!exists)
         {
-            var employees = new List<Employee>
+            var employees = new List<AccountHolder>
         {
-            new Employee { Username = "Arda", Password = "12345678", IsLocked = false, FailedLoginAttempts = 0, Role = "Admin" },
-            new Employee { Username = "Lukas", Password = "12345678", IsLocked = false, FailedLoginAttempts = 0, Role = "Employee" },
-            new Employee { Username = "Goku", Password = "12345678", IsLocked = false, FailedLoginAttempts = 0, Role = "Employee" },
-            new Employee { Username = "Gojo", Password = "12345678", IsLocked = false, FailedLoginAttempts = 0, Role = "Employee" }
+            new AccountHolder { Username = "Arda", Password = "12345678", IsLocked = false, FailedLoginAttempts = 0, Role = "Admin" },
+            new AccountHolder { Username = "Lukas", Password = "12345678", IsLocked = false, FailedLoginAttempts = 0, Role = "User" },
+            new AccountHolder { Username = "Goku", Password = "12345678", IsLocked = false, FailedLoginAttempts = 0, Role = "User" },
+            new AccountHolder { Username = "Gojo", Password = "12345678", IsLocked = false, FailedLoginAttempts = 0, Role = "User" }
         };
             await employeeCollection.InsertManyAsync(employees);
             await CreateEmployeeIndexesAsync();
@@ -230,100 +207,7 @@ public class MongoDBService
     };
 
 
-    /// <summary>
-    /// Inserts predefined service types into the database if they do not already exist.
-    /// </summary>
-    private async Task InsertServiceTypesAsync()
-    {
-        var serviceTypesCollection = _database.GetCollection<ServiceType>("serviceTypes");
-        var exists = await serviceTypesCollection.Find(_ => true).AnyAsync();
-        if (!exists)
-        {
-
-            var serviceTypes = new List<ServiceType>
-            {
-                new ServiceType { Id = "1", Name = "Kleiner Service", Cost = (decimal)new Decimal128(34.95m) },
-                new ServiceType { Id = "2", Name = "Grosser Service", Cost = (decimal)new Decimal128(59.95m) },
-                new ServiceType { Id = "3", Name = "Rennski-Service", Cost = (decimal)new Decimal128(74.95m) },
-                new ServiceType { Id = "4", Name = "Bindung montieren und einstellen", Cost = (decimal)new Decimal128(24.95m) },
-                new ServiceType { Id = "5", Name = "Fell zuschneiden", Cost = (decimal)new Decimal128(14.95m) },
-                new ServiceType { Id = "6", Name = "Heisswachsen", Cost = (decimal)new Decimal128(19.95m) }
-            };
-
-            await serviceTypesCollection.InsertManyAsync(serviceTypes);
-        }
-     }
-
-    /// <summary>
-    /// Inserts predefined service priorities into the database if they are not present.
-    /// </summary>
-    private async Task InsertServicePrioritiesAsync()
-    {
-        var servicePrioritiesCollection = _database.GetCollection<ServicePriority>("servicePriorities");
-        var exists = await servicePrioritiesCollection.Find(_ => true).AnyAsync();
-        if (!exists)
-        {
-            var servicePriorities = new List<ServicePriority>
-            {
-                new ServicePriority { Id = "1", PriorityName = "Low", DayCount = 5 },
-                new ServicePriority { Id = "2", PriorityName = "Standard", DayCount = 0 },
-                new ServicePriority { Id = "3", PriorityName = "Express", DayCount = -2 }
-            };
-            await servicePrioritiesCollection.InsertManyAsync(servicePriorities);
-        }
-    }
-
-    /// <summary>
-    /// Inserts multiple service orders into the database if they do not exist.
-    /// </summary>
-    private async Task InsertMultipleServiceOrdersAsync()
-    {
-        var serviceOrdersCollection = _database.GetCollection<ServiceOrder>("serviceOrders");
-
-        var exists = await serviceOrdersCollection.Find(_ => true).AnyAsync();
-        if (!exists)
-        {
-            var serviceOrders = new List<ServiceOrder>
-            {
-                new ServiceOrder {
-                    CustomerName = "Anna Schmidt",
-                    Email = "anna.schmidt@example.com",
-                    PhoneNumber = "0987654321",
-                    CreationDate = DateTime.Now,
-                    DesiredPickupDate = DateTime.Now.AddDays(3),
-                    Comments = "Bitte um schnelle Bearbeitung.",
-                    Status = OrderStatus.Offen,
-                    ServiceType = new ServiceType { Id = "2", Name = "Grosser Service", Cost = 59.95m },
-                    Priority = new ServicePriority { Id = "3", PriorityName = "Express", DayCount = -2 }
-                },
-                new ServiceOrder {
-                    CustomerName = "Bernd Bauer",
-                    Email = "bernd.bauer@example.com",
-                    PhoneNumber = "1234567890",
-                    CreationDate = DateTime.Now,
-                    DesiredPickupDate = DateTime.Now.AddDays(7),
-                    Comments = "Keine Eile, aber gründlich bitte.",
-                    Status = OrderStatus.Offen,
-                    ServiceType = new ServiceType { Id = "1", Name = "Kleiner Service", Cost = 34.95m },
-                    Priority = new ServicePriority { Id = "1", PriorityName = "Low", DayCount = 5 }
-                },
-                new ServiceOrder
-                {
-                    CustomerName = "Max Mustermann",
-                    Email = "max.mustermann@example.com",
-                    PhoneNumber = "0123456789",
-                    CreationDate = DateTime.Now,
-                    DesiredPickupDate = DateTime.Now.AddDays(5),
-                    Comments = "Bitte um sorgfältige Überprüfung der Bindungen.",
-                    Status = OrderStatus.Offen,
-                    ServiceType = new ServiceType { Id = "1", Name = "Kleiner Service", Cost = 34.95m },
-                    Priority = new ServicePriority { Id = "2", PriorityName = "Standard", DayCount = 0 }
-                }
-            };
-
-            await serviceOrdersCollection.InsertManyAsync(serviceOrders);
-        }
-    }
+    
 
     /// <summary>
     /// Creates default user accounts for application access if they do not exist.

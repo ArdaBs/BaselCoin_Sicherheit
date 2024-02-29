@@ -7,6 +7,6 @@ namespace NoSQLSkiServiceManager.Services
         public bool IsAuthenticated { get; set; }
         public string Message { get; set; }
         public int RemainingAttempts { get; set; }
-        public Employee Employee { get; set; }
+        public AccountHolder Employee { get; set; }
     }
 }
