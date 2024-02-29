@@ -59,29 +59,33 @@
                     <form id="createAccountForm">
                         <div class="mb-3">
                             <label for="username" class="form-label">Benutzername</label>
-                            <input type="text" class="form-control" id="username" required>
+                            <input type="text" class="form-control" id="username">
+                            <div class="invalid-feedback">Benutzername muss mindestens 3 Zeichen lang sein.</div>
                         </div>
                         <div class="mb-3">
                             <label for="password" class="form-label">Passwort</label>
-                            <input type="password" class="form-control" id="password" required>
+                            <input type="password" class="form-control" id="password">
+                            <div class="invalid-feedback">Passwort muss mindestens 8 Zeichen lang sein.</div>
                         </div>
                         <div class="mb-3">
                             <label for="initialBalance" class="form-label">Anfangskontostand</label>
-                            <input type="number" class="form-control" id="initialBalance" required>
+                            <input type="number" class="form-control" id="initialBalance">
+                            <div class="invalid-feedback">Anfangskontostand muss eine gültige Zahl sein.</div>
                         </div>
                         <div class="mb-3">
                             <label for="role" class="form-label">Rolle</label>
-                            <select class="form-select" id="role" required>
+                            <select class="form-select" id="role">
                                 <option value="">Bitte Rolle wählen</option>
                                 <option value="User">User</option>
                                 <option value="Admin">Admin</option>
                             </select>
+                            <div class="invalid-feedback">Bitte wählen Sie eine Rolle.</div>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schliessen</button>
-                    <button type="submit" class="btn btn-primary" onclick="createAccount()">Erstellen</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+                    <button type="button" class="btn btn-primary" onclick="createAccount()">Erstellen</button>
                 </div>
             </div>
         </div>
@@ -214,7 +218,58 @@
         }
     }
 
+    document.getElementById('username').addEventListener('input', validateUsername);
+    document.getElementById('password').addEventListener('input', validatePassword);
+    document.getElementById('role').addEventListener('change', validateRole);
+    document.getElementById('initialBalance').addEventListener('input', validateInitialBalance);
 
+    function validateUsername() {
+        const username = document.getElementById('username');
+        const errorSpan = document.getElementById('username-error');
+        if (username.value.length < 3) {
+            username.classList.add('is-invalid');
+            errorSpan.textContent = 'Benutzername muss mindestens 3 Zeichen lang sein.';
+        } else {
+            username.classList.remove('is-invalid');
+            errorSpan.textContent = '';
+        }
+    }
+
+    function validatePassword() {
+        const password = document.getElementById('password');
+        const errorSpan = document.getElementById('password-error');
+        if (password.value.length < 8) {
+            password.classList.add('is-invalid');
+            errorSpan.textContent = 'Passwort muss mindestens 8 Zeichen lang sein.';
+        } else {
+            password.classList.remove('is-invalid');
+            errorSpan.textContent = '';
+        }
+    }
+
+    function validateRole() {
+        const role = document.getElementById('role');
+        const errorSpan = document.getElementById('role-error');
+        if (role.value === '') {
+            role.classList.add('is-invalid');
+            errorSpan.textContent = 'Bitte wählen Sie eine Rolle.';
+        } else {
+            role.classList.remove('is-invalid');
+            errorSpan.textContent = '';
+        }
+    }
+
+    function validateInitialBalance() {
+        const initialBalance = document.getElementById('initialBalance');
+        const errorSpan = document.getElementById('initialBalance-error');
+        if (isNaN(initialBalance.value) || initialBalance.value < 0) {
+            initialBalance.classList.add('is-invalid');
+            errorSpan.textContent = 'Anfangskontostand muss eine gültige Zahl sein.';
+        } else {
+            initialBalance.classList.remove('is-invalid');
+            errorSpan.textContent = '';
+        }
+    }
 
 </script>
 

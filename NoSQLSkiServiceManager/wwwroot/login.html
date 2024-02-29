@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - SkiService</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="validation.css" 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/auth.js"></script>
 </head>
@@ -34,11 +35,14 @@
             <div class="form-group">
                 <label for="username">Benutzername</label>
                 <input type="text" class="form-control" id="username" required>
+                <div id="usernameFeedback" class="invalid-feedback">Der Benutzername muss mindestens 3 Zeichen lang sein.</div>
             </div>
             <div class="form-group">
                 <label for="password">Passwort</label>
                 <input type="password" class="form-control" id="password" required>
+                <div id="passwordFeedback" class="invalid-feedback">Das Passwort muss mindestens 8 Zeichen lang sein und eine Zahl enthalten.</div>
             </div>
+
             <button type="submit" class="btn btn-primary">Einloggen</button>
         </form>
     </div>
@@ -78,7 +82,6 @@
             if (response.ok) {
                 const data = await response.json();
                 localStorage.setItem('token', data.token);
-                // Prüfe die Rolle nach dem Login
                 redirectToCorrectDashboard(data.token);
             } else {
                 alert('Login fehlgeschlagen');
@@ -86,18 +89,18 @@
         }
 
         function redirectToCorrectDashboard(token) {
-            const decodedToken = decodeJwt(token); // Funktion zum Dekodieren des JWT (siehe unten)
+            const decodedToken = decodeJwt(token);
             const userRole = decodedToken.role;
 
             if (userRole === "Admin") {
-                window.location.href = '/admin-dashboard.html'; // Pfad zur Admin-Dashboard-Seite
+                window.location.href = '/admin-dashboard.html';
             } else {
-                window.location.href = '/account-dashboard.html'; // Pfad zur normalen Dashboard-Seite
+                window.location.href = '/account-dashboard.html';
             }
         }
 
         function decodeJwt(token) {
-            var base64Url = token.split('.')[1]; // Holt den Payload aus dem Token
+            var base64Url = token.split('.')[1];
             var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
             var jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
                 return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
@@ -131,6 +134,36 @@
             localStorage.removeItem('token');
             window.location.href = '/index.html';
         }
+
+        document.getElementById('username').addEventListener('input', function (e) {
+            const inputField = e.target;
+            const feedbackElement = document.getElementById('usernameFeedback');
+            if (inputField.value.length >= 3) {
+                inputField.classList.add('is-valid');
+                inputField.classList.remove('is-invalid');
+                feedbackElement.style.display = 'none';
+            } else {
+                inputField.classList.add('is-invalid');
+                inputField.classList.remove('is-valid');
+                feedbackElement.style.display = 'block';
+            }
+        });
+
+        document.getElementById('password').addEventListener('input', function (e) {
+            const inputField = e.target;
+            const feedbackElement = document.getElementById('passwordFeedback');
+            const passwordCriteria = inputField.value.length >= 8 && /\d/.test(inputField.value);
+            if (passwordCriteria) {
+                inputField.classList.add('is-valid');
+                inputField.classList.remove('is-invalid');
+                feedbackElement.style.display = 'none';
+            } else {
+                inputField.classList.add('is-invalid');
+                inputField.classList.remove('is-valid');
+                feedbackElement.style.display = 'block';
+            }
+        });
+
 
     </script>
 

@@ -83,6 +83,20 @@ namespace NoSQLSkiServiceManager.Services
             };
         }
 
+        public override async Task<AccountHolderResponseDto> CreateAsync(AccountHolderCreateDto createDto)
+        {
+            var existingAccountHolder = await _collection.Find(x => x.Username == createDto.Username).FirstOrDefaultAsync();
+            if (existingAccountHolder != null)
+            {
+                throw new Exception("Username is already taken");
+            }
+
+            var model = _mapper.Map<AccountHolder>(createDto);
+            await _collection.InsertOneAsync(model);
+            return _mapper.Map<AccountHolderResponseDto>(model);
+        }
+
+
         /// <summary>
         /// Unlocks an employee's account.
         /// </summary>
